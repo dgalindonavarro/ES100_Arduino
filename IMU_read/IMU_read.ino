@@ -17,6 +17,7 @@ int counter;
 RTCZero rtc;
 Adafruit_BNO055 bno = Adafruit_BNO055(-1, BNO055_ADDRESS_B);
 
+// GIT TEST
 void setup() {
 
   Serial.begin(115200);
