@@ -1,0 +1,23 @@
+{
+    "configurations": [
+        {
+            "name": "Win32",
+            "includePath": [
+                "C:\\Users\\dgana\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\samd\\1.6.16\\cores\\arduino",
+                "C:\\Program Files (x86)\\Arduino\\libraries\\RTCZero-1.5.2\\src",
+                "C:\\Users\\dgana\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\samd\\1.6.16\\libraries\\SPI"
+            ],
+            "browse": {
+                "limitSymbolsToIncludedHeaders": false,
+                "path": [
+                    "C:\\Users\\dgana\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\samd\\1.6.16\\cores\\arduino",
+                    "${workspaceRoot}",
+                    "C:\\Program Files (x86)\\Arduino\\libraries\\RTCZero-1.5.2\\src",
+                    "C:\\Users\\dgana\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\samd\\1.6.16\\libraries\\SPI"
+                ]
+            },
+            "intelliSenseMode": "msvc-x64"
+        }
+    ],
+    "version": 3
+}
