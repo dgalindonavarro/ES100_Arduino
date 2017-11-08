@@ -1,4 +1,5 @@
 #include <SPI.h>
+#include <Wire.h>
 #include <RTCZero.h>
 #include <Adafruit_Sensor.h>
 #include <Adafruit_BNO055.h>
@@ -17,7 +18,8 @@ int counter;
 RTCZero rtc;
 Adafruit_BNO055 bno = Adafruit_BNO055(-1, BNO055_ADDRESS_B);
 
-// GIT TEST
+int sample_period = 200;        // sample period in mS. 1000/x -> Hz  
+
 void setup() {
 
   Serial.begin(115200);
@@ -49,14 +51,12 @@ void setup() {
   bno.setExtCrystalUse(true);
 
   displayCalStatus(bno);
-
-
 }
 
 void loop() {
-  heartbeat();
+  //heartbeat();
   
-  
+  sampleData(sample_period);
 }
 
 // blink LED, print RTC clock every one second (called in state loop)
@@ -72,7 +72,15 @@ void heartbeat(){
     Serial.print('\n');
 
     blinkLED();
+    
+  }  
+}   
+
+void sampleData(int period){
+  unsigned long mtime = millis();
+  if (mtime% period == 0){
     sensorPing();
+    displayCalStatus(bno);
   }  
 }
 
@@ -88,7 +96,7 @@ void sensorPing(){
   Serial.print(event.orientation.y, 4);
   Serial.print("\tZ: ");
   Serial.print(event.orientation.z, 4);
-  Serial.println("");
+  //Serial.println("");
 }
 
 /**************************************************************************/
