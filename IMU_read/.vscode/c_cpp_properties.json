@@ -7,7 +7,8 @@
                 "C:\\Program Files (x86)\\Arduino\\libraries\\RTCZero-1.5.2\\src",
                 "C:\\Program Files (x86)\\Arduino\\libraries\\Adafruit_BNO055",
                 "C:\\Program Files (x86)\\Arduino\\libraries\\Adafruit_Sensor",
-                "C:\\Users\\dgana\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\samd\\1.6.16\\libraries\\SPI"
+                "C:\\Users\\dgana\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\samd\\1.6.16\\libraries\\SPI",
+                "C:\\Users\\dgana\\OneDrive\\Documents\\HarvardOneDrive\\ES100h Thesis\\Arduino\\IMU_read\\libraries\\Wire"
             ],
             "browse": {
                 "limitSymbolsToIncludedHeaders": false,

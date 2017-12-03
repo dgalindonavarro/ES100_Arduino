@@ -3,13 +3,21 @@
         {
             "name": "Win32",
             "includePath": [
-                "C:\\Users\\dgana\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\samd\\1.6.16\\cores\\arduino"
+                "C:\\Users\\dgana\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\samd\\1.6.16\\cores\\arduino",
+                "C:\\Users\\dgana\\Documents\\Arduino\\libraries\\FlashStorage\\src",
+                "${workspaceRoot}/IMU_read/libraries/Adafruit_Sensor",
+                "${workspaceRoot}/IMU_read/libraries/RTCZero-1.5.2/src",
+                "${workspaceRoot}/IMU_read/libraries/Adafruit_BNO055",
+                "${workspaceRoot}/IMU_read/libraries/Wire/src",
+                "${workspaceRoot}/IMU_read/libraries/SPI/src",
+                "${workspaceRoot}/IMU_read/libraries/Wire/src/utility"
             ],
             "browse": {
                 "limitSymbolsToIncludedHeaders": false,
                 "path": [
                     "C:\\Users\\dgana\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\samd\\1.6.16\\cores\\arduino",
-                    "${workspaceRoot}"
+                    "${workspaceRoot}",
+                    "C:\\Users\\dgana\\Documents\\Arduino\\libraries\\FlashStorage\\src"
                 ]
             },
             "intelliSenseMode": "msvc-x64"
