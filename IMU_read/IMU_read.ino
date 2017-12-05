@@ -4,12 +4,11 @@
 #include <FlashStorage.h>
 #include <Adafruit_Sensor.h>
 #include <Adafruit_BNO055.h>
-#include <utility/imumaths.h>
+#include <utility\imumaths.h>
 #include <Wire.h>
-extern "C" { 
-  //#include "utility\twi.h"
-  }
-  
+//extern "C"{
+//  #include <utility\twi.h>  // screw it we don't need this
+//}  
 
 // LED HEARTBEAT and TIMER DEFINITIONS
 long ledTimer;
@@ -25,7 +24,8 @@ RTCZero rtc;
 
 // IMU SENSOR DECLARATIONS
 #define TCAADDR 0x70
-Adafruit_BNO055 bno = Adafruit_BNO055(-1, BNO055_ADDRESS_B);
+Adafruit_BNO055 bno1 = Adafruit_BNO055(1, BNO055_ADDRESS_B);
+Adafruit_BNO055 bno2 = Adafruit_BNO055(2, BNO055_ADDRESS_B);
 
 // DATA SAMPLING
 #define SAMPLERATE_DELAY_MS 200 // sample period in mS. 1000/x -> Hz
@@ -34,6 +34,7 @@ void setup() {
 
   Serial.begin(115200);
   rtc.begin();  
+  Wire.begin();
   
   // pin instantiations
   pinMode(PIN_LED, OUTPUT);
@@ -42,22 +43,29 @@ void setup() {
 
   Serial.println("Orientation Sensor Test"); Serial.println("");
   
-  /* Initialise both sensors */
-  /*if(!bno.begin())
+  // Initialise both sensors 
+  tcaselect(0);
+  if(!bno1.begin())
   {
-    // There was a problem detecting the BNO055 ... check your connections 
-    Serial.print("Reh, no BNO055 detected ... Check your wiring or I2C ADDR!");
+    // There was a problem detecting the BNO055 ID1 ... check your connections 
+    Serial.print("Reh, first BNO055 not detected ... Check your wiring or I2C ADDR!");
+    while(1);
+  }
+  tcaselect(1);
+  if(!bno2.begin())
+  {
+    // There was a problem detecting the BNO055 ID2 ... check your connections 
+    Serial.print("Reh, second BNO055 not detected ... Check your wiring or I2C ADDR!");
     while(1);
   }
   //delay(1000);
-  bno.setExtCrystalUse(true);
-
-  displayCalStatus(bno);
-  */
-
-  //testTCA();
+  bno1.setExtCrystalUse(true);
+  bno2.setExtCrystalUse(true);
   
-  
+  Serial.print("BNO 1:\n");
+  displayCalStatus(bno1);
+  Serial.print("BNO 2:\n");
+  displayCalStatus(bno2);
 }
 
 void loop() {
@@ -94,6 +102,7 @@ void heartbeat(){
   }  
 }   
 
+/* REWRITE TO ACCOUNT FOR MULTIPLE bno objects
 void sampleData(int period){
   unsigned long mtime = millis();
   if (mtime% period == 0){
@@ -101,9 +110,19 @@ void sampleData(int period){
     displayCalStatus(bno);
   }  
 }
+*/
+
+// does nothing so far, figure out later
+/*
+void sensorDetails(Adafruit_BNO055 bno){
+  adafruit_bno055_rev_info_t info;
+  bno.getRevInfo(&info);
+
+}
+*/
 
 // print IMU sensor Euler angles at time called
-void sensorPing(){
+void sensorPing(Adafruit_BNO055 bno){
   sensors_event_t event; 
   bno.getEvent(&event);
 
@@ -115,23 +134,6 @@ void sensorPing(){
   Serial.print("\tZ: ");
   Serial.print(event.orientation.z, 4);
   //Serial.println("");
-}
-
-/**************************************************************************/
-/*
-Turn LED on for ledTimer time in ms
-*/
-/**************************************************************************/
-void blinkLED(){
-  ledTimer = millis();
-  digitalWrite(PIN_LED, HIGH);
-
-  while(digitalRead(PIN_LED) == HIGH){
-    if(millis() - ledTimer > ledDelay) {
-      
-      digitalWrite(PIN_LED, LOW);
-    }
-  }
 }
 
 /**************************************************************************/
@@ -167,6 +169,23 @@ Serial.println(mag, DEC);
 
 /**************************************************************************/
 /*
+Turn LED on for ledTimer time in ms
+*/
+/**************************************************************************/
+void blinkLED(){
+  ledTimer = millis();
+  digitalWrite(PIN_LED, HIGH);
+
+  while(digitalRead(PIN_LED) == HIGH){
+    if(millis() - ledTimer > ledDelay) {
+      
+      digitalWrite(PIN_LED, LOW);
+    }
+  }
+}
+
+/**************************************************************************/
+/*
 TCA9548A Function
 Select an I2C device to communicate with , 0-7
 */
@@ -178,6 +197,9 @@ void tcaselect(uint8_t i) {
   Wire.write(1 << i);
   Wire.endTransmission();  
 }
+
+// I2C BUS SCANNING Function.
+// BROKEN, REQUIRES twi.h file not used in Wire.h of SAMD implementation
 /*
 void testTCA(){
   while (!Serial);
@@ -202,60 +224,5 @@ void testTCA(){
     }
   }
   Serial.println("\ndone");
-
 }
 */
-
-/**************************************************************************/
-/*
-Set SAMD21E Dual Slope PWM
-https://forum.arduino.cc/index.php?topic=346731.0
-
-Output 100Hz PWM on timer TCC0 digital pin D13
-*/
-/**************************************************************************/
-void setupPWM()
-{ 
-  REG_GCLK_GENDIV = GCLK_GENDIV_DIV(3) |          // Divide the 48MHz clock source by divisor 3: 48MHz/3=16MHz
-                    GCLK_GENDIV_ID(4);            // Select Generic Clock (GCLK) 4
-  while (GCLK->STATUS.bit.SYNCBUSY);              // Wait for synchronization
-
-  REG_GCLK_GENCTRL = GCLK_GENCTRL_IDC |           // Set the duty cycle to 50/50 HIGH/LOW
-                     GCLK_GENCTRL_GENEN |         // Enable GCLK4
-                     GCLK_GENCTRL_SRC_DFLL48M |   // Set the 48MHz clock source
-                     GCLK_GENCTRL_ID(4);          // Select GCLK4
-  while (GCLK->STATUS.bit.SYNCBUSY);              // Wait for synchronization
-
-  // Enable the port multiplexer for digital pin 13 (D13): timer TCC0 output
-  PORT->Group[g_APinDescription[13].ulPort].PINCFG[g_APinDescription[13].ulPin].bit.PMUXEN = 1;
-  
-  // Connect the TCC0 timer to the port output - port pins are paired odd PMUO and even PMUXE
-  // F & E specify the timers: TCC0, TCC1 and TCC2
-  PORT->Group[g_APinDescription[11].ulPort].PMUX[g_APinDescription[11].ulPin >> 1].reg = PORT_PMUX_PMUXO_F;
-  
-  // Feed GCLK4 to TCC0 and TCC1
-  REG_GCLK_CLKCTRL = GCLK_CLKCTRL_CLKEN |         // Enable GCLK4 to TCC0 and TCC1
-                     GCLK_CLKCTRL_GEN_GCLK4 |     // Select GCLK4
-                     GCLK_CLKCTRL_ID_TCC0_TCC1;   // Feed GCLK4 to TCC0 and TCC1
-  while (GCLK->STATUS.bit.SYNCBUSY);              // Wait for synchronization
-
-  // Dual slope PWM operation: timers countinuously count up to PER register value then down 0
-  REG_TCC0_WAVE |= TCC_WAVE_POL(0xF) |         // Reverse the output polarity on all TCC0 outputs
-                    TCC_WAVE_WAVEGEN_DSBOTTOM;    // Setup dual slope PWM on TCC0
-  while (TCC0->SYNCBUSY.bit.WAVE);               // Wait for synchronization
-
-  // Each timer counts up to a maximum or TOP value set by the PER register,
-  // this determines the frequency of the PWM operation:
-  // 20000 = 50Hz, 10000 = 100Hz, 2500  = 400Hz,    ... 500 = 2000Hz
-  REG_TCC0_PER = 500;      // Set the frequency of the PWM on TCC0 to 100Hz
-  while(TCC0->SYNCBUSY.bit.PER);
-
-  // The CCBx register value corresponds to the pulsewidth in microseconds (us)
-  REG_TCC0_CCB3 = 1500;       // TCC0 CCB3 - center the servo on D13
-  while(TCC0->SYNCBUSY.bit.CCB3);
-
-  // Divide the 16MHz signal by 8 giving 2MHz (0.5us) TCC0 timer tick and enable the outputs
-  REG_TCC0_CTRLA |= TCC_CTRLA_PRESCALER_DIV8 |    // Divide GCLK4 by 8
-                    TCC_CTRLA_ENABLE;             // Enable the TCC0 output
-  while (TCC0->SYNCBUSY.bit.ENABLE);              // Wait for synchronization
-}
