@@ -24,8 +24,8 @@ RTCZero rtc;
 
 // IMU SENSOR DECLARATIONS
 #define TCAADDR 0x70
-Adafruit_BNO055 bno1 = Adafruit_BNO055(1, BNO055_ADDRESS_B);
-Adafruit_BNO055 bno2 = Adafruit_BNO055(2, BNO055_ADDRESS_B);
+Adafruit_BNO055 bno1 = Adafruit_BNO055(55);
+//Adafruit_BNO055 bno2 = Adafruit_BNO055(2, BNO055_ADDRESS_B);
 
 // DATA SAMPLING
 #define SAMPLERATE_DELAY_MS 200 // sample period in mS. 1000/x -> Hz
@@ -44,28 +44,29 @@ void setup() {
   Serial.println("Orientation Sensor Test"); Serial.println("");
   
   // Initialise both sensors 
-  tcaselect(0);
+  //tcaselect(0);
+  delay(500);
   if(!bno1.begin())
   {
     // There was a problem detecting the BNO055 ID1 ... check your connections 
     Serial.print("Reh, first BNO055 not detected ... Check your wiring or I2C ADDR!");
     while(1);
   }
-  tcaselect(1);
+  /*tcaselect(1);
   if(!bno2.begin())
   {
     // There was a problem detecting the BNO055 ID2 ... check your connections 
     Serial.print("Reh, second BNO055 not detected ... Check your wiring or I2C ADDR!");
     while(1);
   }
-  //delay(1000);
+  //delay(1000);*/
   bno1.setExtCrystalUse(true);
-  bno2.setExtCrystalUse(true);
+  //bno2.setExtCrystalUse(true);
   
   Serial.print("BNO 1:\n");
   displayCalStatus(bno1);
-  Serial.print("BNO 2:\n");
-  displayCalStatus(bno2);
+  //Serial.print("BNO 2:\n");
+  //displayCalStatus(bno2);
 }
 
 void loop() {
