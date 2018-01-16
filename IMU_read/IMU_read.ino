@@ -24,7 +24,7 @@ RTCZero rtc;
 
 // IMU SENSOR DECLARATIONS
 #define TCAADDR 0x70
-Adafruit_BNO055 bno1 = Adafruit_BNO055(55);
+Adafruit_BNO055 bno1 = Adafruit_BNO055(1, BNO055_ADDRESS_B);
 //Adafruit_BNO055 bno2 = Adafruit_BNO055(2, BNO055_ADDRESS_B);
 
 // DATA SAMPLING
@@ -41,7 +41,7 @@ void setup() {
   pinMode(PIN_BUZZER, OUTPUT);
   digitalWrite(PIN_LED, HIGH); 
 
-  Serial.println("Orientation Sensor Test"); Serial.println("");
+  SerialUSB.println("Orientation Sensor Test"); SerialUSB.println("");
   
   // Initialise both sensors 
   //tcaselect(0);
@@ -49,23 +49,23 @@ void setup() {
   if(!bno1.begin())
   {
     // There was a problem detecting the BNO055 ID1 ... check your connections 
-    Serial.print("Reh, first BNO055 not detected ... Check your wiring or I2C ADDR!");
+    SerialUSB.print("Reh, first BNO055 not detected ... Check your wiring or I2C ADDR!");
     while(1);
   }
   /*tcaselect(1);
   if(!bno2.begin())
   {
     // There was a problem detecting the BNO055 ID2 ... check your connections 
-    Serial.print("Reh, second BNO055 not detected ... Check your wiring or I2C ADDR!");
+    SerialUSB.print("Reh, second BNO055 not detected ... Check your wiring or I2C ADDR!");
     while(1);
   }
   //delay(1000);*/
   bno1.setExtCrystalUse(true);
   //bno2.setExtCrystalUse(true);
   
-  Serial.print("BNO 1:\n");
+  SerialUSB.print("BNO 1:\n");
   displayCalStatus(bno1);
-  //Serial.print("BNO 2:\n");
+  //SerialUSB.print("BNO 2:\n");
   //displayCalStatus(bno2);
 }
 
@@ -84,6 +84,8 @@ void loop() {
   for(int i = 0; i < 256; i++){
     delayMicroseconds(BUZZ_PERIOD);
   }
+
+  sensorPing(bno1);
 }
 
 // blink LED, print RTC clock every one second (called in state loop)
@@ -91,12 +93,12 @@ void loop() {
 void heartbeat(){
   unsigned long mtime = millis();
   if (mtime% 1000 == 0){
-    Serial.print(rtc.getHours());
-    Serial.print(":");
-    Serial.print(rtc.getMinutes());
-    Serial.print(":");
-    Serial.print(rtc.getSeconds());
-    Serial.print('\n');
+    SerialUSB.print(rtc.getHours());
+    SerialUSB.print(":");
+    SerialUSB.print(rtc.getMinutes());
+    SerialUSB.print(":");
+    SerialUSB.print(rtc.getSeconds());
+    SerialUSB.print('\n');
 
     blinkLED();
     
@@ -128,13 +130,13 @@ void sensorPing(Adafruit_BNO055 bno){
   bno.getEvent(&event);
 
   /* Display the floating point data */
-  Serial.print("X: ");
-  Serial.print(event.orientation.x, 4);
-  Serial.print("\tY: ");
-  Serial.print(event.orientation.y, 4);
-  Serial.print("\tZ: ");
-  Serial.print(event.orientation.z, 4);
-  //Serial.println("");
+  SerialUSB.print("X: ");
+  SerialUSB.print(event.orientation.x, 4);
+  SerialUSB.print("\tY: ");
+  SerialUSB.print(event.orientation.y, 4);
+  SerialUSB.print("\tZ: ");
+  SerialUSB.print(event.orientation.z, 4);
+  //SerialUSB.println("");
 }
 
 /**************************************************************************/
@@ -151,21 +153,21 @@ uint8_t system, gyro, accel, mag;
 system = gyro = accel = mag = 0;
 bno.getCalibration(&system, &gyro, &accel, &mag);
 /* The data should be ignored until the system calibration is > 0 */
-Serial.print("\t");
+SerialUSB.print("\t");
 if (!system)
 {
-Serial.print("! ");
+SerialUSB.print("! ");
 }
 /* Display the individual values */
-Serial.print("Sys:");
-Serial.print(system, DEC);
-Serial.print(" G:");
-Serial.print(gyro, DEC);
-Serial.print(" A:");
-Serial.print(accel, DEC);
-Serial.print(" M:");
+SerialUSB.print("Sys:");
+SerialUSB.print(system, DEC);
+SerialUSB.print(" G:");
+SerialUSB.print(gyro, DEC);
+SerialUSB.print(" A:");
+SerialUSB.print(accel, DEC);
+SerialUSB.print(" M:");
 //© Adafruit Industries https://learn.adafruit.com/adafruit-bno055-absolute-orientation-sensor Page 26 of 33
-Serial.println(mag, DEC);
+SerialUSB.println(mag, DEC);
 }
 
 /**************************************************************************/
@@ -203,27 +205,27 @@ void tcaselect(uint8_t i) {
 // BROKEN, REQUIRES twi.h file not used in Wire.h of SAMD implementation
 /*
 void testTCA(){
-  while (!Serial);
+  while (!SerialUSB);
   delay(1000);
 
   Wire.begin();
   
-  Serial.begin(115200);
-  Serial.println("\nTCAScanner ready!");
+  SerialUSB.begin(115200);
+  SerialUSB.println("\nTCAScanner ready!");
   
   for (uint8_t t=0; t<8; t++) {
     tcaselect(t);
-    Serial.print("TCA Port #"); Serial.println(t);
+    SerialUSB.print("TCA Port #"); SerialUSB.println(t);
 
     for (uint8_t addr = 0; addr<=127; addr++) {
       if (addr == TCAADDR) continue;
     
       uint8_t data;
       if (! twi_writeTo(addr, &data, 0, 1, 1)) {
-         Serial.print("Found I2C 0x");  Serial.println(addr,HEX);
+         SerialUSB.print("Found I2C 0x");  SerialUSB.println(addr,HEX);
       }
     }
   }
-  Serial.println("\ndone");
+  SerialUSB.println("\ndone");
 }
 */

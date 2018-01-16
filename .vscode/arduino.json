@@ -1,5 +1,5 @@
 {
-    "board": "arduino:samd:arduino_zero_edbg",
-    "port": "COM11",
+    "board": "arduino:samd:mzero_bl",
+    "port": "COM12",
     "sketch": "IMU_read\\IMU_read.ino"
 }
