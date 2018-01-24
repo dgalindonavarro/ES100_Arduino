@@ -5,7 +5,6 @@
             "includePath": [
                 "C:\\Users\\dgana\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\samd\\1.6.16\\cores\\arduino",
                 "C:\\Program Files (x86)\\Arduino\\libraries\\SD\\src",
-                "C:\\Users\\dgana\\Documents\\Arduino\\libraries\\SD\\src",
                 "C:\\Program Files (x86)\\Arduino\\libraries\\Adafruit_BNO055"
             ],
             "browse": {
@@ -13,7 +12,6 @@
                 "path": [
                     "C:\\Users\\dgana\\AppData\\Local\\Arduino15\\packages\\arduino\\hardware\\samd\\1.6.16\\cores\\arduino",
                     "C:\\Program Files (x86)\\Arduino\\libraries\\SD\\src",
-                    "C:\\Users\\dgana\\Documents\\Arduino\\libraries\\SD\\src",
                     "C:\\Program Files (x86)\\Arduino\\libraries\\Adafruit_BNO055"
                 ]
             },
