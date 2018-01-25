@@ -8,10 +8,13 @@
 
 // PIN DEFINITIONS
 #define PIN_LED       13
-#define PIN_BUZZER    3
+#define PIN_BUZZER    7
 #define SPI_CS        10
 #define PIN_BUTTON    5
 #define PIN_DEBUG     8
+#define PIN_R         2
+#define PIN_G         3
+#define PIN_B         4
 
 // STATE DEFINITIONS
 #define S_STARTUP       0
@@ -24,12 +27,24 @@
 // COEFFICIENTS
 #define SAMPLE_DELAY  200     // mS
 
+// COLORS
+#define OFF    0x00
+#define RED    0x01
+#define GREEN  0x02
+#define BLUE   0x04
+#define CYAN   0x06
+#define PURPLE 0x05
+#define YELLOW 0X03 
+
 // Global Variables
 uint state;
 long ledTimer;
 const uint ledDelay = 70;
 const char* filename = "data.txt";
 bool isLogging;
+
+// Real-Time Clock
+RTCZero rtc;
 
 // Variables using the SD utility library functions:
 Sd2Card card;
@@ -43,6 +58,9 @@ Adafruit_BNO055 bno2 = Adafruit_BNO055(2, BNO055_ADDRESS_B);
 void setup() {
   // put your setup code here, to run once:
   state = S_STARTUP;
+  rgbLED(PURPLE);
+  
+  rtc.begin();
   Serial.begin(115200);
   while (!Serial) {
     ; // wait for serial port to connect. Needed for native USB port only
@@ -71,6 +89,7 @@ void loop() {
       break;
 
     case S_IDLE:
+      rgbLED(YELLOW);
       // Sensors recording measurement. Waiting for user Zero. No feedback given; print values for debug?
       if (isLogging) {
         logData("reh");
@@ -142,6 +161,7 @@ void initSDlogging(){
   isLogging = true;
 }
 
+// Write a string as a line to the SD card file filename 
 void logData(char* dataString){
 
   File dataFile = SD.open(filename, FILE_WRITE);
@@ -155,5 +175,22 @@ void logData(char* dataString){
   // if the file isn't open, pop up an error:
   else {
     SerialUSB.println("error opening datalog.txt");
+  }
+}
+
+// Control RGB LED to either: Red, Green, Blue, Purple, Cyan, Yellow, OFF
+void rgbLED(unsigned char color){
+  digitalWrite(PIN_R, HIGH);
+  digitalWrite(PIN_G, HIGH);
+  digitalWrite(PIN_B, HIGH);
+
+  if(color && BLUE == BLUE){
+    digitalWrite(PIN_B, LOW);
+  }
+  if(color && GREEN == GREEN){
+    digitalWrite(PIN_G, LOW);
+  }
+  if(color && RED == RED){
+    digitalWrite(PIN_R, LOW);
   }
 }
