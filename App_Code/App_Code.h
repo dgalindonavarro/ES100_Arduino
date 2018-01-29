@@ -42,6 +42,7 @@
 // ERROR CODES
 #define BNO_A_ERROR   0x01
 #define BNO_B_ERROR   0x02
+#define FILE_ERROR    0X04
 
 // Global Variables
 uint state;
@@ -91,7 +92,7 @@ void initSDlogging(){
   }
   SerialUSB.println("card initialized.");     
 
-  String dataString = "Device_Startup, Data, Time, Value";
+  String dataString = "Device_Startup, Sensor_A, Sensor_B, Delta, State";
   // open the file. note that only one file can be open at a time,
   // so you have to close this one before opening another.
   File dataFile = SD.open(filename, FILE_WRITE);
@@ -106,6 +107,7 @@ void initSDlogging(){
   // if the file isn't open, pop up an error:
   else {
     SerialUSB.println("error opening datalog.txt");
+    errorcode = FILE_ERROR;
   }
 
   isLogging = true;
@@ -135,7 +137,7 @@ struct IMU_Sample sensorRead(Adafruit_BNO055 bno_a, Adafruit_BNO055 bno_b){
   sensors_event_t event_a;
   sensors_event_t event_b;
 
-  bno_a.getEvent(&event_b);
+  bno_a.getEvent(&event_a);
   bno_b.getEvent(&event_b);
 
   // extract the pitch angles of interest as samples  
@@ -150,17 +152,14 @@ struct IMU_Sample sensorRead(Adafruit_BNO055 bno_a, Adafruit_BNO055 bno_b){
 void logSample(struct IMU_Sample sample){
   String dataline = "";
   
-  dataline += "A, ";
+  dataline += "Sample, ";
   dataline += String(sample.a);
   dataline += ", ";
-  dataline += "B, ";
-  dataline += sample.b;
+  dataline += String(sample.b);
   dataline += ", ";  
-  dataline += "Delta, ";
-  dataline += sample.delta;
+  dataline += String(sample.delta);
   dataline += ", ";
-  dataline += "State, ";
-  dataline += state;
+  dataline += String(state);
   
   logData(dataline);
 }

@@ -73,17 +73,24 @@ void loop() {
 
       if (buttonPressed){
         buttonPressed = false;
-        logData("Posture Zeroed at ");
+        // Store angle delta as zero point for posture analysis. Switch to active monitoring Green state.
+        String zeroed = "Posture delta Zeroed at ";
+        zeroed += String(sample_idle.delta);
+        zeroed += " degrees.";
+        logData(zeroed);
+        zero_delta = sample_idle.delta;
         state = S_GREEN;
       }
       }
       break;
     
     case S_GREEN:
+      rgbLED(GREEN);
       // Once curvature zeroed, reading values, comparing to treshold. Within range
       break;
     
     case S_YELLOW:
+      rgbLED(YELLOW);
       // Threshold passed: give some form of feedback
       break;
     
@@ -100,6 +107,9 @@ void loop() {
       }
       if ((errorcode & BNO_B_ERROR) == BNO_B_ERROR){
         logData("Sensor_B disconnected");
+      }
+      if ((errorcode & FILE_ERROR) == FILE_ERROR){
+        SerialUSB.println("Error writing to specified file.");
       }
       break;
 
