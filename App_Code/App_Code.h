@@ -71,7 +71,7 @@ void blinkLED(){
   digitalWrite(PIN_LED, HIGH);
 
   while(digitalRead(PIN_LED) == HIGH){
-    if(millis() - ledTimer > BLINK_DELAY) {
+    if((millis() - ledTimer) > BLINK_DELAY) {
       
       digitalWrite(PIN_LED, LOW);
     }
@@ -166,19 +166,19 @@ void logSample(struct IMU_Sample sample){
 }
 
 // Control RGB LED to either: Red, Green, Blue, Purple, Cyan, Yellow, OFF
-void rgbLED(unsigned char color){
-  digitalWrite(PIN_R, HIGH);
-  digitalWrite(PIN_G, HIGH);
-  digitalWrite(PIN_B, HIGH);
+void rgbLED(byte color){
+  digitalWrite(PIN_R, LOW);
+  digitalWrite(PIN_G, LOW);
+  digitalWrite(PIN_B, LOW);
 
-  if(color & BLUE == BLUE){
-    digitalWrite(PIN_B, LOW);
+  if((color & BLUE) == BLUE){
+    digitalWrite(PIN_B, HIGH);
   }
-  if(color & GREEN == GREEN){
-    digitalWrite(PIN_G, LOW);
+  if((color & GREEN) == GREEN){
+    digitalWrite(PIN_G, HIGH);
   }
-  if(color & RED == RED){
-    digitalWrite(PIN_R, LOW);
+  if((color & RED) == RED){
+    digitalWrite(PIN_R, HIGH);
   }
 }
 

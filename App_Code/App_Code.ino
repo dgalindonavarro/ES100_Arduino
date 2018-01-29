@@ -13,7 +13,7 @@ void setup() {
   
   rtc.begin();
   Wire.begin();
-  Serial.begin(115200);
+  Serial.begin(9600);
   while (!Serial) {
     ; // wait for serial port to connect. Needed for native USB port only
   }
@@ -37,7 +37,7 @@ void loop() {
 
   switch(state) {
     case S_STARTUP:{
-      // Ensure Sensors Working Properly, Calibrated
+      // Ensure Sensors Working Properly, Calibrated. Initiate SD logging.
       rgbLED(PURPLE);
       digitalWrite(PIN_DEBUG, LOW);
       initSDlogging();
@@ -95,10 +95,10 @@ void loop() {
       }
       logData("Error State Reached");
       // Print identifying error message
-      if (errorcode & BNO_A_ERROR == BNO_A_ERROR){
+      if ((errorcode & BNO_A_ERROR) == BNO_A_ERROR){
         logData("Sensor_A disconnected");
       }
-      if (errorcode & BNO_B_ERROR == BNO_B_ERROR){
+      if ((errorcode & BNO_B_ERROR) == BNO_B_ERROR){
         logData("Sensor_B disconnected");
       }
       break;
