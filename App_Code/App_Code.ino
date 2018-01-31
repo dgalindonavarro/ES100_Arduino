@@ -18,15 +18,15 @@ void setup() {
     ; // wait for serial port to connect. Needed for native USB port only
   }
 
-  pinMode(PIN_LED, OUTPUT);
   pinMode(PIN_BUZZER, OUTPUT);
+  pinMode(PIN_HAP_A, OUTPUT);
+  pinMode(PIN_HAP_B, OUTPUT);
   pinMode(PIN_DEBUG, OUTPUT);
   pinMode(PIN_R, OUTPUT);
   pinMode(PIN_G, OUTPUT);
   pinMode(PIN_B, OUTPUT);
   pinMode(PIN_BUTTON, INPUT_PULLUP);
 
-  digitalWrite(PIN_LED, LOW); 
   digitalWrite(PIN_DEBUG, HIGH);
 
   attachInterrupt(digitalPinToInterrupt(PIN_BUTTON), button1_isr, FALLING);
@@ -63,6 +63,7 @@ void loop() {
 
     case S_IDLE:{
       rgbLED(BLUE);
+      haptics(OFF);
       
       // Sensors recording measurement. Waiting for user Zero. No feedback given; print values for debug?
       struct IMU_Sample sample_idle = sensorRead(bno_a, bno_b); 
@@ -74,28 +75,73 @@ void loop() {
       if (buttonPressed){
         buttonPressed = false;
         // Store angle delta as zero point for posture analysis. Switch to active monitoring Green state.
-        String zeroed = "Posture delta Zeroed at ";
-        zeroed += String(sample_idle.delta);
-        zeroed += " degrees.";
-        logData(zeroed);
-        zero_delta = sample_idle.delta;
+        zero(sample_idle.delta);
         state = S_GREEN;
       }
       }
       break;
     
-    case S_GREEN:
+    case S_GREEN:{
       rgbLED(GREEN);
+      haptics(OFF);
+
       // Once curvature zeroed, reading values, comparing to treshold. Within range
+      struct IMU_Sample sample_green = sensorRead(bno_a, bno_b); 
+      float delta_m = sample_green.delta - zero_delta;
+      if(isLogging){
+        logSample(sample_green);   
+      }
+
+      // Deviation of sample exceeds first threshold. Move to next state.   
+      if(abs(delta_m) > (float) G_THRESHOLD){
+        state = S_YELLOW;  
+      }
+
+      if (buttonPressed){
+        buttonPressed = false;
+        // Store angle delta as zero point for posture analysis. Switch to active monitoring Green state.
+        zero(sample_green.delta);
+        state = S_GREEN;
+      }
+
+      }
       break;
     
-    case S_YELLOW:
+    case S_YELLOW:{
       rgbLED(YELLOW);
-      // Threshold passed: give some form of feedback
+      // Take new sample.
+      struct IMU_Sample sample_yellow = sensorRead(bno_a, bno_b); 
+      float delta_m = sample_yellow.delta - zero_delta;
+
+      if(abs(delta_m) > (float) G_THRESHOLD){
+        // steeper A than B
+        // PIN_BUZZER
+
+        if(delta_m > 0){
+          haptics(A);      
+        }
+        else{
+          haptics(B);
+        }
+      }
+      else{
+        // returned to within normal
+        state = S_GREEN;
+      }
+
+      // check for new Zero
+      if (buttonPressed){
+        buttonPressed = false;
+        // Store angle delta as zero point for posture analysis. Switch to active monitoring Green state.
+        zero(sample_yellow.delta);
+        state = S_GREEN;
+      }
+      }
       break;
     
     case S_ERROR:
       rgbLED(RED);
+      haptics(OFF);
       // Error logging state. Document error.
       if(!isLogging){
         initSDlogging();

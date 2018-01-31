@@ -8,14 +8,15 @@
 #include <Wire.h>
 
 // PIN DEFINITIONS
-#define PIN_LED       13
+#define PIN_DEBUG     13      // also attached to M0 on-board LED
 #define PIN_BUZZER    7
 #define SPI_CS        10
 #define PIN_BUTTON    5
-#define PIN_DEBUG     8
 #define PIN_R         2
 #define PIN_G         3
 #define PIN_B         4
+#define PIN_HAP_A     8
+#define PIN_HAP_B     9
 
 // STATE DEFINITIONS
 #define S_STARTUP       0
@@ -28,7 +29,9 @@
 
 // COEFFICIENTS
 #define SAMPLE_DELAY   50     // mS
-#define BLINK_DELAY    10     // mS      
+#define BLINK_DELAY    10     // mS
+
+#define G_THRESHOLD    7      // (float) degrees       
 
 // COLORS
 #define OFF    0x00
@@ -39,6 +42,11 @@
 #define PURPLE 0x05
 #define YELLOW 0X03
 
+// HAPTICS
+#define A      0x01
+#define B      0x02
+#define BOTH   0x03
+ 
 // ERROR CODES
 #define BNO_A_ERROR   0x01
 #define BNO_B_ERROR   0x02
@@ -69,12 +77,12 @@ struct IMU_Sample{
 // FUNCTIONS
 void blinkLED(){
   long ledTimer = millis();
-  digitalWrite(PIN_LED, HIGH);
+  digitalWrite(PIN_DEBUG, HIGH);
 
-  while(digitalRead(PIN_LED) == HIGH){
+  while(digitalRead(PIN_DEBUG) == HIGH){
     if((millis() - ledTimer) > BLINK_DELAY) {
       
-      digitalWrite(PIN_LED, LOW);
+      digitalWrite(PIN_DEBUG, LOW);
     }
   }
 }
@@ -113,7 +121,7 @@ void initSDlogging(){
   isLogging = true;
 }
 
-// Write a string as a line to the SD card file filename 
+// Write a string as a line to the SD card file filename. Should check isLogging before calling. 
 void logData(String dataString){
 
   File dataFile = SD.open(filename, FILE_WRITE);
@@ -181,7 +189,33 @@ void rgbLED(byte color){
   }
 }
 
+// Haptic Motor Controller for both A and B (A corresponds to thoracic, B corresponds to lumbar)
+// for now, only on or OFF
+// OFF, A, B, BOTH
+void haptics(byte code){
+  digitalWrite(PIN_HAP_A, LOW);
+  digitalWrite(PIN_HAP_B, LOW);
+
+  if((code & A) == A){
+    digitalWrite(PIN_HAP_A, HIGH);
+  }
+  if((code & B) == B){
+    digitalWrite(PIN_HAP_B, HIGH);
+  }
+}
+
 // Button 1 Interrupt Service Routine
 void button1_isr(){
   buttonPressed = true;
+}
+
+// Button 1 ISR flag handler. Sets global zero point to passed in float. (does not reset flag)
+void zero(float delta){
+  if(isLogging){
+    String zeroed = "Posture delta Zeroed at ";
+    zeroed += String(delta);
+    zeroed += " degrees.";
+    logData(zeroed);
+  }
+  zero_delta = delta;  
 }
