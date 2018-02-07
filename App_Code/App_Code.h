@@ -12,9 +12,9 @@
 #define PIN_BUZZER    10
 #define SPI_CS        7
 #define PIN_BUTTON    5
-#define PIN_R         2
+#define PIN_R         4
 #define PIN_G         3
-#define PIN_B         4
+#define PIN_B         2
 #define PIN_HAP_A     8
 #define PIN_HAP_B     9
 

@@ -159,6 +159,7 @@ void loop() {
       if ((errorcode & FILE_ERROR) == FILE_ERROR){
         SerialUSB.println("Error writing to specified file.");
       }
+      state = default;
       break;
 
     default:
