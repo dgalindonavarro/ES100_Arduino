@@ -9,8 +9,8 @@
 
 // PIN DEFINITIONS
 #define PIN_DEBUG     13      // also attached to M0 on-board LED
-#define PIN_BUZZER    7
-#define SPI_CS        10
+#define PIN_BUZZER    10
+#define SPI_CS        7
 #define PIN_BUTTON    5
 #define PIN_R         2
 #define PIN_G         3

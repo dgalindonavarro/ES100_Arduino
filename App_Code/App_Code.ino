@@ -112,9 +112,11 @@ void loop() {
       // Take new sample.
       struct IMU_Sample sample_yellow = sensorRead(bno_a, bno_b); 
       float delta_m = sample_yellow.delta - zero_delta;
+      if(isLogging){
+        logSample(sample_yellow);   
+      }
 
       if(abs(delta_m) > (float) G_THRESHOLD){
-        // steeper A than B
         // PIN_BUZZER
 
         if(delta_m > 0){
