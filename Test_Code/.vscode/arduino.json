@@ -1,0 +1,5 @@
+{
+    "board": "arduino:samd:mzero_bl",
+    "sketch": "Test_Code.ino",
+    "port": "COM12"
+}
