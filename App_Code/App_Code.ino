@@ -39,6 +39,7 @@ void loop() {
     case S_STARTUP:{
       // Ensure Sensors Working Properly, Calibrated. Initiate SD logging.
       rgbLED(PURPLE);
+      haptics(OFF);
       digitalWrite(PIN_DEBUG, LOW);
       initSDlogging();
       digitalWrite(PIN_DEBUG, HIGH);
@@ -62,8 +63,7 @@ void loop() {
       break;
 
     case S_IDLE:{
-      rgbLED(BLUE);
-      haptics(OFF);
+      rgbLED(BLUE);  
       
       // Sensors recording measurement. Waiting for user Zero. No feedback given; print values for debug?
       struct IMU_Sample sample_idle = sensorRead(bno_a, bno_b); 

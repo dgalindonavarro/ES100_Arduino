@@ -194,14 +194,14 @@ void rgbLED(byte color){
 // for now, only on or OFF
 // OFF, A, B, BOTH
 void haptics(byte code){
-  digitalWrite(PIN_HAP_A, HIGH); // haptic A is now active LOW
-  digitalWrite(PIN_HAP_B, LOW);
+  digitalWrite(PIN_HAP_A, LOW); 
+  digitalWrite(PIN_HAP_B, HIGH);  // haptic B is now active LOW
 
   if((code & A) == A){
-    digitalWrite(PIN_HAP_A, LOW);
+    digitalWrite(PIN_HAP_A, HIGH);
   }
   if((code & B) == B){
-    digitalWrite(PIN_HAP_B, HIGH);
+    digitalWrite(PIN_HAP_B, LOW);
   }
 }
 
