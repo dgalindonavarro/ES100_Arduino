@@ -27,11 +27,14 @@
 #define S_FBK_DELAY     5
 #define S_ERROR         6
 #define S_DEFAULT       7
+#define S_HOLD          8
 
 // TIMING
 #define SAMPLE_DELAY   50     // mS
 #define BLINK_DELAY    10     // mS
-#define START_BEEP     100    // mS   
+#define START_BEEP     100    // mS
+#define HELD_BEEP      50     // mS 
+#define HOLD_TIME      1000   // mS
 
 // COEFFICIENTS
 #define G_THRESHOLD    7      // (float) degrees       
@@ -60,12 +63,16 @@
 
 // Global Variables
 unsigned long cycle_count;
+unsigned long hold_timer;
 uint state;
 uint errorcode = 0x00;
 float zero_delta;
 const char* filename = "data.txt";
 bool isLogging;
+bool isFeedbck;
 volatile bool buttonPressed = false;
+volatile bool buttonReleased = false;
+bool waiting;
 byte haptic_status = 0x00;
 
 // Real-Time Clock
@@ -216,16 +223,19 @@ void rgbLED(byte color){
 // Haptic Motor Controller for both A and B (A corresponds to thoracic, B corresponds to lumbar)
 // for now, only on or OFF
 // OFF, A, B, BOTH
+// isFeedbck must be true for haptics to be switched on
 void haptics(byte code){
   digitalWrite(PIN_HAP_A, LOW); 
   digitalWrite(PIN_HAP_B, HIGH);  // haptic B is now active LOW
 
-  if((code & A) == A){
-    digitalWrite(PIN_HAP_A, HIGH);
+  if(isFeedbck){
+    if((code & A) == A){
+      digitalWrite(PIN_HAP_A, HIGH);
 
-  }
-  if((code & B) == B){
-    digitalWrite(PIN_HAP_B, LOW);
+    }
+    if((code & B) == B){
+      digitalWrite(PIN_HAP_B, LOW);
+    }                   
   }
 
   haptic_status = code;
@@ -233,7 +243,14 @@ void haptics(byte code){
 
 // Button 1 Interrupt Service Routine
 void button1_isr(){
-  buttonPressed = true;
+  if(digitalRead(PIN_BUTTON) == LOW){
+    buttonPressed = true;
+    hold_timer = millis();
+  } 
+  else{
+    buttonReleased = true;
+  }
+  
 }
 
 // Button 1 ISR flag handler. Sets global zero point to passed in float. (does not reset flag)

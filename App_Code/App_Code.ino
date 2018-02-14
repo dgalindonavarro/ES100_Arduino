@@ -29,7 +29,7 @@ void setup() {
 
   digitalWrite(PIN_DEBUG, HIGH);
 
-  attachInterrupt(digitalPinToInterrupt(PIN_BUTTON), button1_isr, FALLING);
+  attachInterrupt(digitalPinToInterrupt(PIN_BUTTON), button1_isr, CHANGE);
 }
 
 void loop() {
@@ -78,16 +78,47 @@ void loop() {
 
       if (buttonPressed){
         buttonPressed = false;
+        waiting = true;
         // Store angle delta as zero point for posture analysis. Switch to active monitoring Green state.
         zero(sample_idle.delta);
-        state = S_GREEN;
+        state = S_HOLD;
       }
       }
       break;
+
+    case S_HOLD:{
+      // if zero button is pressed down, contiuously determine length of hold. For feedback/non feedback input.
+      // time since button down detected
+      bool held;
+
+      if(waiting){
+        held = ((millis() - hold_timer) > HOLD_TIME);
+      }
+      if(held & waiting){
+        buzzer(ON);
+        delay(HELD_BEEP);
+        buzzer(OFF);
+        waiting = false;
+      }
+  
+      // button gets released. Move to next state.
+      if(buttonReleased){
+        buttonReleased = false;
+        if(held){
+          isFeedbck = false;
+        }
+        else{
+          isFeedbck = true;
+        }
+        state = S_GREEN;
+      }
+      }
+      break;  
     
     case S_GREEN:{
       rgbLED(GREEN);
       haptics(OFF);
+
 
       // Once curvature zeroed, reading values, comparing to treshold. Within range
       struct IMU_Sample sample_green = sensorRead(bno_a, bno_b); 
