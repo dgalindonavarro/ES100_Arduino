@@ -124,10 +124,10 @@ void loop() {
       if(abs(delta_m) > (float) G_THRESHOLD){
 
         if(delta_m > 0){
-          haptics(A);      
+          haptics(B);      
         }
         else{
-          haptics(B);
+          haptics(A);
         }
       }
       else{
