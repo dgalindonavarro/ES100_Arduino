@@ -59,6 +59,7 @@
 #define FILE_ERROR    0X04
 
 // Global Variables
+unsigned long cycle_count;
 uint state;
 uint errorcode = 0x00;
 float zero_delta;
@@ -117,7 +118,7 @@ void initSDlogging(){
   }
   SerialUSB.println("card initialized.");     
 
-  String dataString = "Device_Startup, Sensor_A, Sensor_B, Delta, State, Hap_A, Hap_B";
+  String dataString = "Device_Startup, N, Sensor_A, Sensor_B, Delta, State, Hap_A, Hap_B";
   // open the file. note that only one file can be open at a time,
   // so you have to close this one before opening another.
   File dataFile = SD.open(filename, FILE_WRITE);
@@ -178,6 +179,8 @@ void logSample(struct IMU_Sample sample){
   String dataline = "";
   
   dataline += "Sample, ";
+  dataline += String(cycle_count);
+  dataline += ", ";
   dataline += String(sample.a);
   dataline += ", ";
   dataline += String(sample.b);

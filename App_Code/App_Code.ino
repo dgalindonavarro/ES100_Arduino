@@ -58,6 +58,7 @@ void loop() {
       
       if (errorcode){state = S_ERROR;} else {
         state = S_IDLE;
+        cycle_count = 0;
         buzzer(ON);
         delay(START_BEEP); 
         buzzer(OFF);  
@@ -174,4 +175,5 @@ void loop() {
   delay(SAMPLE_DELAY);
   blinkLED();
   buzzer(OFF);
+  cycle_count++;
 }
