@@ -26,6 +26,7 @@
 #define S_RED           4
 #define S_FBK_DELAY     5
 #define S_ERROR         6
+#define S_DEFAULT       7
 
 // COEFFICIENTS
 #define SAMPLE_DELAY   50     // mS
@@ -193,11 +194,11 @@ void rgbLED(byte color){
 // for now, only on or OFF
 // OFF, A, B, BOTH
 void haptics(byte code){
-  digitalWrite(PIN_HAP_A, LOW);
+  digitalWrite(PIN_HAP_A, HIGH); // haptic A is now active LOW
   digitalWrite(PIN_HAP_B, LOW);
 
   if((code & A) == A){
-    digitalWrite(PIN_HAP_A, HIGH);
+    digitalWrite(PIN_HAP_A, LOW);
   }
   if((code & B) == B){
     digitalWrite(PIN_HAP_B, HIGH);
