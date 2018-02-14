@@ -76,17 +76,17 @@ void loop() {
         logSample(sample_idle);
       }
 
+      // Zero set point.
       if (buttonPressed){
-        buttonPressed = false;
-        waiting = true;
-        // Store angle delta as zero point for posture analysis. Switch to active monitoring Green state.
-        zero(sample_idle.delta);
+        button_handle(sample_idle.delta);
         state = S_HOLD;
       }
       }
       break;
 
     case S_HOLD:{
+      haptics(OFF);
+      buzzer(OFF);
       // if zero button is pressed down, contiuously determine length of hold. For feedback/non feedback input.
       // time since button down detected
       bool held;
@@ -122,21 +122,19 @@ void loop() {
 
       // Once curvature zeroed, reading values, comparing to treshold. Within range
       struct IMU_Sample sample_green = sensorRead(bno_a, bno_b); 
-      float delta_m = sample_green.delta - zero_delta;
+      float dev_delta = sample_green.delta - zero_delta;
       if(isLogging){
         logSample(sample_green);   
       }
 
       // Deviation of sample exceeds first threshold. Move to next state.   
-      if(abs(delta_m) > (float) G_THRESHOLD){
+      if(abs(dev_delta) > (float) G_THRESHOLD){
         state = S_YELLOW;  
       }
 
       if (buttonPressed){
-        buttonPressed = false;
-        // Store angle delta as zero point for posture analysis. Switch to active monitoring Green state.
-        zero(sample_green.delta);
-        state = S_GREEN;
+        button_handle(sample_green.delta);
+        state = S_HOLD;
       }
 
       }
@@ -147,14 +145,14 @@ void loop() {
       buzzer(ON);
       // Take new sample.
       struct IMU_Sample sample_yellow = sensorRead(bno_a, bno_b); 
-      float delta_m = sample_yellow.delta - zero_delta;
+      float dev_delta = sample_yellow.delta - zero_delta;
       if(isLogging){
         logSample(sample_yellow);   
       }
 
-      if(abs(delta_m) > (float) G_THRESHOLD){
+      if(abs(dev_delta) > (float) G_THRESHOLD){
 
-        if(delta_m > 0){
+        if(dev_delta > 0){
           haptics(B);      
         }
         else{
@@ -168,10 +166,8 @@ void loop() {
 
       // check for new Zero
       if (buttonPressed){
-        buttonPressed = false;
-        // Store angle delta as zero point for posture analysis. Switch to active monitoring Green state.
-        zero(sample_yellow.delta);
-        state = S_GREEN;
+        button_handle(sample_yellow.delta);
+        state = S_HOLD;
       }
       }
       break;

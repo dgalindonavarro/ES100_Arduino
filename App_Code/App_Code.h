@@ -69,7 +69,7 @@ uint errorcode = 0x00;
 float zero_delta;
 const char* filename = "data.txt";
 bool isLogging;
-bool isFeedbck;
+bool isFeedbck = true; // by default true so startup beeps occur
 volatile bool buttonPressed = false;
 volatile bool buttonReleased = false;
 bool waiting;
@@ -103,7 +103,7 @@ void blinkLED(){
 }
 
 void buzzer(byte cmd){
-  if(cmd){
+  if(cmd & isFeedbck){
     digitalWrite(PIN_BUZZER, HIGH);
   }
   else
@@ -245,7 +245,6 @@ void haptics(byte code){
 void button1_isr(){
   if(digitalRead(PIN_BUTTON) == LOW){
     buttonPressed = true;
-    hold_timer = millis();
   } 
   else{
     buttonReleased = true;
@@ -253,7 +252,7 @@ void button1_isr(){
   
 }
 
-// Button 1 ISR flag handler. Sets global zero point to passed in float. (does not reset flag)
+// Sets global zero point to passed in float. (does not reset flag)
 void zero(float delta){
   if(isLogging){
     String zeroed = "Posture delta Zeroed at ";
@@ -262,4 +261,16 @@ void zero(float delta){
     logData(zeroed);
   }
   zero_delta = delta;  
+}
+
+// Button down ISR flag handler in Idle, Green, or Yellow states.
+// takes a sample as input
+// state must be sent to S_HOLD afterwards
+void button_handle(float delta){
+  hold_timer = millis();
+  buttonPressed = false;
+  waiting = true;
+
+  // Store angle delta as zero point for posture analysis.
+  zero(delta);  
 }
