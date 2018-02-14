@@ -28,10 +28,12 @@
 #define S_ERROR         6
 #define S_DEFAULT       7
 
-// COEFFICIENTS
+// TIMING
 #define SAMPLE_DELAY   50     // mS
 #define BLINK_DELAY    10     // mS
+#define START_BEEP     100    // mS   
 
+// COEFFICIENTS
 #define G_THRESHOLD    7      // (float) degrees       
 
 // COLORS
@@ -47,6 +49,9 @@
 #define A      0x01
 #define B      0x02
 #define BOTH   0x03
+
+// BUZZER
+#define ON     0x01
  
 // ERROR CODES
 #define BNO_A_ERROR   0x01
@@ -60,6 +65,7 @@ float zero_delta;
 const char* filename = "data.txt";
 bool isLogging;
 volatile bool buttonPressed = false;
+byte haptic_status = 0x00;
 
 // Real-Time Clock
 RTCZero rtc;
@@ -88,6 +94,16 @@ void blinkLED(){
   }
 }
 
+void buzzer(byte cmd){
+  if(cmd){
+    digitalWrite(PIN_BUZZER, HIGH);
+  }
+  else
+  {
+    digitalWrite(PIN_BUZZER, LOW);
+  }
+}
+
 // Initializes SD card. Sets isLogging to true if successful. 
 void initSDlogging(){
   SerialUSB.print("Initializing SD card...");
@@ -101,7 +117,7 @@ void initSDlogging(){
   }
   SerialUSB.println("card initialized.");     
 
-  String dataString = "Device_Startup, Sensor_A, Sensor_B, Delta, State";
+  String dataString = "Device_Startup, Sensor_A, Sensor_B, Delta, State, Hap_A, Hap_B";
   // open the file. note that only one file can be open at a time,
   // so you have to close this one before opening another.
   File dataFile = SD.open(filename, FILE_WRITE);
@@ -151,7 +167,7 @@ struct IMU_Sample sensorRead(Adafruit_BNO055 bno_a, Adafruit_BNO055 bno_b){
 
   // extract the pitch angles of interest as samples  
   sample.a = event_a.orientation.z;
-  sample.b = event_b.orientation.z;
+  sample.b = -(event_b.orientation.z); // ensure signs are both positive
   sample.delta = sample.a - sample.b;
 
   return sample;
@@ -169,6 +185,10 @@ void logSample(struct IMU_Sample sample){
   dataline += String(sample.delta);
   dataline += ", ";
   dataline += String(state);
+  dataline += ", ";
+  dataline += String(haptic_status & A);
+  dataline += ", ";
+  dataline += String((haptic_status & B) >> 1);
   
   logData(dataline);
 }
@@ -199,10 +219,13 @@ void haptics(byte code){
 
   if((code & A) == A){
     digitalWrite(PIN_HAP_A, HIGH);
+
   }
   if((code & B) == B){
     digitalWrite(PIN_HAP_B, LOW);
   }
+
+  haptic_status = code;
 }
 
 // Button 1 Interrupt Service Routine

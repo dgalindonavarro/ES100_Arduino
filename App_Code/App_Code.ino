@@ -58,12 +58,15 @@ void loop() {
       
       if (errorcode){state = S_ERROR;} else {
         state = S_IDLE;
+        buzzer(ON);
+        delay(START_BEEP); 
+        buzzer(OFF);  
       }
       }
       break;
 
     case S_IDLE:{
-      rgbLED(BLUE);  
+      rgbLED(BLUE);
       
       // Sensors recording measurement. Waiting for user Zero. No feedback given; print values for debug?
       struct IMU_Sample sample_idle = sensorRead(bno_a, bno_b); 
@@ -109,6 +112,7 @@ void loop() {
     
     case S_YELLOW:{
       rgbLED(YELLOW);
+      buzzer(ON);
       // Take new sample.
       struct IMU_Sample sample_yellow = sensorRead(bno_a, bno_b); 
       float delta_m = sample_yellow.delta - zero_delta;
@@ -117,7 +121,6 @@ void loop() {
       }
 
       if(abs(delta_m) > (float) G_THRESHOLD){
-        // PIN_BUZZER
 
         if(delta_m > 0){
           haptics(A);      
@@ -167,6 +170,8 @@ void loop() {
       break; 
   } 
 
+  // total cycle period = state_Execution_time + SAMPLE_DELAY + BLINK_DELAY
   delay(SAMPLE_DELAY);
   blinkLED();
+  buzzer(OFF);
 }
