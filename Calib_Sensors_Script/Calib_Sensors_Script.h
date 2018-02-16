@@ -67,7 +67,7 @@ volatile unsigned long hold_timer;
 uint state;
 uint errorcode = 0x00;
 float zero_delta;
-const char* filename = "calibration.txt";
+const char* filename = "reh.txt";
 bool isLogging;
 bool isFeedbck = true; // by default true so startup beeps occur
 volatile bool buttonPressed = false;

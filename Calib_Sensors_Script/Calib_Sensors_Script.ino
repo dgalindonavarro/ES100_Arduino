@@ -166,7 +166,8 @@ void loop() {
       break;
     
     case S_ERROR:{
-      rgbLED(PURPLE);
+      rgbLED(YELLOW);
+      SerialUSB.println(errorcode);
       }
       break;
 
