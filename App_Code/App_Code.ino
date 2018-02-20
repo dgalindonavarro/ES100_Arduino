@@ -55,39 +55,34 @@ void loop() {
       }      
 
       // UPLOAD CALIBRATION DATA
-      adafruit_bno055_offsets_t calibrationData_a;
-      adafruit_bno055_offsets_t calibrationData_b;
+      adafruit_bno055_offsets_t calibrationData_a = {0};
+      adafruit_bno055_offsets_t calibrationData_b = {0};
 
-      if(bno_a.getSensorOffsets(calibrationData_a)){
-        calibrationData_a.accel_offset_x = A_ax;
-        calibrationData_a.accel_offset_y = A_ay;
-        calibrationData_a.accel_offset_z = A_az;
-        calibrationData_a.accel_radius = A_ar;
-        calibrationData_a.gyro_offset_x = A_gx;
-        calibrationData_a.gyro_offset_y = A_gy;
-        calibrationData_a.gyro_offset_z = A_gz;
+      calibrationData_a.accel_offset_x = A_ax;
+      calibrationData_a.accel_offset_y = A_ay;
+      calibrationData_a.accel_offset_z = A_az;
+      calibrationData_a.accel_radius = A_ar;
+      calibrationData_a.gyro_offset_x = A_gx;
+      calibrationData_a.gyro_offset_y = A_gy;
+      calibrationData_a.gyro_offset_z = A_gz;
 
-        bno_a.setSensorOffsets(calibrationData_a);
-      }
-      else{
-        errorcode = GET_A_FAIL;       
-      }
+      bno_a.setSensorOffsets(calibrationData_a);
+    
+      calibrationData_b.accel_offset_x = B_ax;
+      calibrationData_b.accel_offset_y = B_ay;
+      calibrationData_b.accel_offset_z = B_az;
+      calibrationData_b.accel_radius = B_ar;
+      calibrationData_b.gyro_offset_x = B_gx;
+      calibrationData_b.gyro_offset_y = B_gy;
+      calibrationData_b.gyro_offset_z = B_gz;
 
-      if(bno_b.getSensorOffsets(calibrationData_b)){
-        calibrationData_b.accel_offset_x = B_ax;
-        calibrationData_b.accel_offset_y = B_ay;
-        calibrationData_b.accel_offset_z = B_az;
-        calibrationData_b.accel_radius = B_ar;
-        calibrationData_b.gyro_offset_x = B_gx;
-        calibrationData_b.gyro_offset_y = B_gy;
-        calibrationData_b.gyro_offset_z = B_gz;
-
-        bno_b.setSensorOffsets(calibrationData_b);
-      }
-      else{
-        errorcode = GET_B_FAIL;       
-      }
+      bno_b.setSensorOffsets(calibrationData_b);
       
+      // ensure A and B fully Calibrated
+      while(!bno_a.isFullyCalibrated() || !bno_b.isFullyCalibrated()){
+        delay(BLINK_DELAY_MS); // short delay      
+      } 
+
       if (errorcode){state = S_ERROR;} else {
         bno_a.setExtCrystalUse(true);
         bno_b.setExtCrystalUse(true);  

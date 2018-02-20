@@ -37,7 +37,7 @@
 #define HOLD_TIME         1000   // mS
 
 // COEFFICIENTS
-#define G_THRESHOLD    8      // (float) degrees       
+#define G_THRESHOLD    4      // (float) degrees       
 
 // CALIBRATION DATA
 #define A_ax           6      // (uint16) offset
@@ -78,8 +78,6 @@
 #define FILE_ERROR    0x04
 #define GET_A_FAIL    0x08
 #define GET_B_FAIL    0x10
-#define WRITE_A_FAIL  0x20  
-#define WRITE_B_FAIL  0x40
 
 // Global Variables
 unsigned long cycle_count;
