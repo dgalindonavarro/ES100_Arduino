@@ -30,14 +30,30 @@
 #define S_HOLD          8
 
 // TIMING
-#define SAMPLE_DELAY   50     // mS
-#define BLINK_DELAY    10     // mS
-#define START_BEEP     100    // mS
-#define HELD_BEEP      50     // mS 
-#define HOLD_TIME      1000   // mS
+#define SAMPLE_DELAY_MS   40     // mS
+#define BLINK_DELAY_MS    10     // mS
+#define START_BEEP        100    // mS
+#define HELD_BEEP         50     // mS 
+#define HOLD_TIME         1000   // mS
 
 // COEFFICIENTS
-#define G_THRESHOLD    7      // (float) degrees       
+#define G_THRESHOLD    8      // (float) degrees       
+
+// CALIBRATION DATA
+#define A_ax           6      // (uint16) offset
+#define A_ay           0      // (uint16) offset
+#define A_az           26     // (uint16) offset
+#define A_gx           65536  // (uint16) offset
+#define A_gy           65536  // (uint16) offset
+#define A_gz           0      // (uint16) offset
+#define A_ar           1000
+#define B_ax           2      // (uint16) offset
+#define B_ay           65491  // (uint16) offset
+#define B_az           29     // (uint16) offset
+#define B_gx           1      // (uint16) offset
+#define B_gy           65535  // (uint16) offset
+#define B_gz           0      // (uint16) offset
+#define B_ar           1000 
 
 // COLORS
 #define OFF    0x00
@@ -59,7 +75,11 @@
 // ERROR CODES
 #define BNO_A_ERROR   0x01
 #define BNO_B_ERROR   0x02
-#define FILE_ERROR    0X04
+#define FILE_ERROR    0x04
+#define GET_A_FAIL    0x08
+#define GET_B_FAIL    0x10
+#define WRITE_A_FAIL  0x20  
+#define WRITE_B_FAIL  0x40
 
 // Global Variables
 unsigned long cycle_count;
@@ -95,7 +115,7 @@ void blinkLED(){
   digitalWrite(PIN_DEBUG, HIGH);
 
   while(digitalRead(PIN_DEBUG) == HIGH){
-    if((millis() - ledTimer) > BLINK_DELAY) {
+    if((millis() - ledTimer) > BLINK_DELAY_MS) {
       
       digitalWrite(PIN_DEBUG, LOW);
     }

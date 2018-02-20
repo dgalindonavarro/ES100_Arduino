@@ -53,10 +53,45 @@ void loop() {
         // There was a problem detecting the BNO055 ID2 ... check your connections 
         errorcode = errorcode | BNO_B_ERROR;
       }      
-      bno_a.setExtCrystalUse(true);
-      bno_b.setExtCrystalUse(true);
+
+      // UPLOAD CALIBRATION DATA
+      adafruit_bno055_offsets_t calibrationData_a;
+      adafruit_bno055_offsets_t calibrationData_b;
+
+      if(bno_a.getSensorOffsets(calibrationData_a)){
+        calibrationData_a.accel_offset_x = A_ax;
+        calibrationData_a.accel_offset_y = A_ay;
+        calibrationData_a.accel_offset_z = A_az;
+        calibrationData_a.accel_radius = A_ar;
+        calibrationData_a.gyro_offset_x = A_gx;
+        calibrationData_a.gyro_offset_y = A_gy;
+        calibrationData_a.gyro_offset_z = A_gz;
+
+        bno_a.setSensorOffsets(calibrationData_a);
+      }
+      else{
+        errorcode = GET_A_FAIL;       
+      }
+
+      if(bno_b.getSensorOffsets(calibrationData_b)){
+        calibrationData_b.accel_offset_x = B_ax;
+        calibrationData_b.accel_offset_y = B_ay;
+        calibrationData_b.accel_offset_z = B_az;
+        calibrationData_b.accel_radius = B_ar;
+        calibrationData_b.gyro_offset_x = B_gx;
+        calibrationData_b.gyro_offset_y = B_gy;
+        calibrationData_b.gyro_offset_z = B_gz;
+
+        bno_b.setSensorOffsets(calibrationData_b);
+      }
+      else{
+        errorcode = GET_B_FAIL;       
+      }
       
       if (errorcode){state = S_ERROR;} else {
+        bno_a.setExtCrystalUse(true);
+        bno_b.setExtCrystalUse(true);  
+
         state = S_IDLE;
         cycle_count = 0;
         buzzer(ON);
@@ -181,6 +216,8 @@ void loop() {
       }
       logData("Error State Reached");
       // Print identifying error message
+      logData(String(errorcode));
+
       if ((errorcode & BNO_A_ERROR) == BNO_A_ERROR){
         logData("Sensor_A disconnected");
       }
@@ -199,8 +236,8 @@ void loop() {
   } 
 
   // total cycle period = state_Execution_time + SAMPLE_DELAY + BLINK_DELAY
-  delay(SAMPLE_DELAY);
-  blinkLED();
+  delay(SAMPLE_DELAY_MS);
+  blinkLED();              // BLINK_DELAY_MS
   buzzer(OFF);
   cycle_count++;
 }
