@@ -7,6 +7,8 @@
 #include <string.h>
 #include <Wire.h>
 
+// text from test branch
+
 // PIN DEFINITIONS
 #define PIN_DEBUG     13      // also attached to M0 on-board LED
 #define PIN_BUZZER    10
@@ -37,7 +39,7 @@
 #define HOLD_TIME         1000   // mS
 
 // COEFFICIENTS
-#define G_THRESHOLD    4      // (float) degrees       
+#define G_THRESHOLD    6      // (float) degrees       
 
 // CALIBRATION DATA
 #define A_ax           6      // (uint16) offset
