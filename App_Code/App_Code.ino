@@ -102,15 +102,13 @@ void loop() {
       // Sensors recording measurement. Waiting for user Zero. No feedback given; print values for debug?
       struct IMU_Sample sample_idle = sensorRead(bno_a, bno_b); 
 
-      if (isLogging) {
-        logSample(sample_idle);
-      }
-
       // Zero set point.
       if (buttonPressed){
         button_handle(sample_idle.delta);
         state = S_HOLD;
       }
+
+      logSample(sample_idle);
       }
       break;
 
@@ -149,13 +147,9 @@ void loop() {
       rgbLED(GREEN);
       haptics(OFF);
 
-
       // Once curvature zeroed, reading values, comparing to treshold. Within range
       struct IMU_Sample sample_green = sensorRead(bno_a, bno_b); 
       float dev_delta = sample_green.delta - zero_delta;
-      if(isLogging){
-        logSample(sample_green);   
-      }
 
       // Deviation of sample exceeds first threshold. Move to next state.   
       if(abs(dev_delta) > (float) G_THRESHOLD){
@@ -167,6 +161,7 @@ void loop() {
         state = S_HOLD;
       }
 
+      logSample(sample_green);   
       }
       break;
     
@@ -176,9 +171,6 @@ void loop() {
       // Take new sample.
       struct IMU_Sample sample_yellow = sensorRead(bno_a, bno_b); 
       float dev_delta = sample_yellow.delta - zero_delta;
-      if(isLogging){
-        logSample(sample_yellow);   
-      }
 
       if(abs(dev_delta) > (float) G_THRESHOLD){
 
@@ -199,6 +191,8 @@ void loop() {
         button_handle(sample_yellow.delta);
         state = S_HOLD;
       }
+
+      logSample(sample_yellow);   
       }
       break;
     
@@ -209,15 +203,15 @@ void loop() {
       if(!isLogging){
         initSDlogging();
       }
-      logData("Error State Reached");
+      logString("Error State Reached");
       // Print identifying error message
-      logData(String(errorcode));
+      logString(String(errorcode));
 
       if ((errorcode & BNO_A_ERROR) == BNO_A_ERROR){
-        logData("Sensor_A disconnected");
+        logString("Sensor_A disconnected");
       }
       if ((errorcode & BNO_B_ERROR) == BNO_B_ERROR){
-        logData("Sensor_B disconnected");
+        logString("Sensor_B disconnected");
       }
       if ((errorcode & FILE_ERROR) == FILE_ERROR){
         SerialUSB.println("Error writing to specified file.");

@@ -7,8 +7,6 @@
 #include <string.h>
 #include <Wire.h>
 
-// text from test branch
-
 // PIN DEFINITIONS
 #define PIN_DEBUG     13      // also attached to M0 on-board LED
 #define PIN_BUZZER    10
@@ -81,10 +79,35 @@
 #define GET_A_FAIL    0x08
 #define GET_B_FAIL    0x10
 
+// STRUCTURE DEFINITIONS
+#define BUFF_SIZE           1200    // struct data_samples of size 20 bytes (only 32kB RAM)
+#define WRITE_REST_PERIOD     40    // length, in samples, of stable activity before writing
+#define P2P_MAX               15    // degrees, max allowable P2P to write data
+
+struct IMU_Sample{
+    float a;
+    float b;
+    float delta;
+};
+
+struct data_sample{
+    struct IMU_Sample angles;
+    long time;
+    byte state;
+    byte statA;
+    byte statB;
+};
+
+// FORWARD DECLARATIONS
+float minarray(float *arr);
+float maxarray(float *arr);
+bool calculateActivity(float nextA);
+void writeData();
+
 // Global Variables
 unsigned long cycle_count;
 volatile unsigned long hold_timer;
-uint state;
+byte state;
 uint errorcode = 0x00;
 float zero_delta;
 const char* filename = "data.txt";
@@ -102,12 +125,19 @@ RTCZero rtc;
 Adafruit_BNO055 bno_a = Adafruit_BNO055(1, BNO055_ADDRESS_A);
 Adafruit_BNO055 bno_b = Adafruit_BNO055(2, BNO055_ADDRESS_B);
 
-// STRUCTURE DEFINITIONS
-struct IMU_Sample{
-    float a;
-    float b;
-    float delta;
-};
+// DATA BUFFERS and PTRS
+static struct data_sample databuff[BUFF_SIZE] = {0};
+static struct data_sample* buffptr = databuff;
+bool buff_overflow = false;
+
+// FOR CALCULATING MAX AND MIN of A data
+static float a_data[WRITE_REST_PERIOD];
+byte a_data_pos = 0;
+byte rest_counter = 0;
+
+float a_min = INFINITY;
+float a_max = -INFINITY;
+
 
 // FUNCTIONS
 void blinkLED(){
@@ -145,7 +175,7 @@ void initSDlogging(){
   }
   SerialUSB.println("card initialized.");     
 
-  String dataString = "Device_Startup, Time (mS), Sensor_A, Sensor_B, Delta, State, Hap_A, Hap_B";
+  String dataString = "Time (mS), Sensor_A, Sensor_B, A-B, State, Hap_A, Hap_B";
   // open the file. note that only one file can be open at a time,
   // so you have to close this one before opening another.
   File dataFile = SD.open(filename, FILE_WRITE);
@@ -167,7 +197,7 @@ void initSDlogging(){
 }
 
 // Write a string as a line to the SD card file filename. Should check isLogging before calling. 
-void logData(String dataString){
+void logString(String dataString){
 
   File dataFile = SD.open(filename, FILE_WRITE);
   // if the file is available, write to it:
@@ -201,29 +231,136 @@ struct IMU_Sample sensorRead(Adafruit_BNO055 bno_a, Adafruit_BNO055 bno_b){
   return sample;
 }
 
-// Log a data sample (sensor pitches, delta, state) to the SD
+// Log a data sample (sensor pitches, delta, state) to the data buffer's current position. If full, trigger writeData().
+// Move buffer pointer forward by one.
+// determine if data should be written to SD; if it is, call writeData();
 void logSample(struct IMU_Sample sample){
-  String dataline = "";
-  
-  dataline += "Sample, ";
-  dataline += String(millis());
-  dataline += ", ";
-  dataline += String(sample.a);
-  dataline += ", ";
-  dataline += String(sample.b);
-  dataline += ", ";  
-  dataline += String(sample.delta);
-  dataline += ", ";
-  dataline += String(state);
-  dataline += ", ";
-  dataline += String(haptic_status & A);
-  dataline += ", ";
-  dataline += String((haptic_status & B) >> 1);
-  
-  logData(dataline);
+  buffptr->time = millis();
+  buffptr->angles.a = sample.a; 
+  buffptr->angles.b = sample.b;
+  buffptr->angles.delta = sample.delta;
+  buffptr->state = state;
+  buffptr->statA = (haptic_status & A);
+  buffptr->statB = ((haptic_status & B) >> 1);
+
+  // increment buffer position to next available
+  buffptr++;  
+
+  // have we gone N samples with no activity?
+  if(calculateActivity(sample.a)){
+    writeData();
+  }
 }
 
-// Control RGB LED to either: Red, Green, Blue, Purple, Cyan, Yellow, OFF
+// given a new data pt, see if peak-to-peak values of A indicate user activity
+// update the activity detect buffer, buffer pos
+bool calculateActivity(float nextA){
+
+  // put data in buffer
+  a_data[a_data_pos] = nextA;  
+  if(++a_data_pos >= WRITE_REST_PERIOD){
+    a_data_pos = 0;
+  }
+
+  // don't do anything if first N data
+  if(cycle_count < WRITE_REST_PERIOD){
+    a_max = nextA;
+    a_min = nextA;   
+    rest_counter++;
+
+    return false;  
+  }
+  else{
+
+    // calculate new max/min
+    a_max = maxarray(a_data);
+    a_min = maxarray(a_data);
+
+    // calculate peak to peak, see if trips
+    if((a_max - a_min) >= (float) P2P_MAX){
+      // reset rest counter, still active.
+      rest_counter = 0;
+    }
+    else{
+      rest_counter++;
+    }
+
+    // return true if rest counter reaches MAX
+    if(rest_counter >= WRITE_REST_PERIOD){
+      rest_counter = 0;
+      return true;
+    }
+    else{
+      return false;
+    }
+  }
+}
+
+// Write all data in buffer to SD (if logging) and clear buffer, move pointer back to beginning.
+void writeData(){
+  if(isLogging){
+    // move ptr to beginning of buffer
+    buffptr = databuff;
+    File dataFile = SD.open(filename, FILE_WRITE);
+
+    if (dataFile){
+      // while data_Sample.time != 0 write it all out
+      while(!buffptr->time){
+        String dataline = "";
+        
+        dataline += String(buffptr->time);
+        dataline += ", ";
+        dataline += String(buffptr->angles.a);
+        dataline += ", ";
+        dataline += String(buffptr->angles.b);
+        dataline += ", ";  
+        dataline += String(buffptr->angles.delta);
+        dataline += ", ";
+        dataline += String(buffptr->state);
+        dataline += ", ";
+        dataline += String(buffptr->statA);
+        dataline += ", ";
+        dataline += String(buffptr->statB);
+        
+        dataFile.println(dataline);
+        buffptr++;
+      }
+      dataFile.close();
+    }  
+    else{
+      // there was an error opening the data.txt file.
+    }  
+  memset(databuff, 0, sizeof(databuff));
+  buffptr = databuff;
+  }
+}
+
+// stupid linear search, only 40 values
+// calculate, return minimum value in a float array
+float minarray(float *arr){
+  float m = INFINITY;
+  for(int i; i < sizeof(arr); i++){
+    if(arr[i] < m){
+      m = arr[i];    
+    }
+  }
+
+  return m;  
+}
+
+// calculate, return max value in a float array
+float maxarray(float *arr){
+  float m = -INFINITY;
+  for(int i; i < sizeof(arr); i++){
+    if(arr[i] > m){
+      m = arr[i];    
+    }
+  }
+
+  return m;    
+}
+
+// Control RGB LED to either: Red, Green, Blue, Purple, CYAN, Yellow, OFF
 void rgbLED(byte color){
   digitalWrite(PIN_R, LOW);
   digitalWrite(PIN_G, LOW);
@@ -278,7 +415,7 @@ void zero(float delta){
     String zeroed = "Posture delta Zeroed at ";
     zeroed += String(delta);
     zeroed += " degrees.";
-    logData(zeroed);
+    logString(zeroed);
   }
   zero_delta = delta;  
 }
