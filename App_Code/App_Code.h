@@ -84,25 +84,26 @@
 #define WRITE_REST_PERIOD     40    // length, in samples, of stable activity before writing
 #define P2P_MAX               15    // degrees, max allowable P2P to write data
 
-struct IMU_Sample{
+typedef struct IMU_Sample{
     float a;
     float b;
     float delta;
-};
+} IMU_Sample;
 
-struct data_sample{
-    struct IMU_Sample angles;
+typedef struct data_sample{
+    IMU_Sample angles;
     long time;
     byte state;
     byte statA;
     byte statB;
-};
+} data_sample;
 
 // FORWARD DECLARATIONS
 float minarray(float *arr);
 float maxarray(float *arr);
 bool calculateActivity(float nextA);
 void writeData();
+void rgbLED(byte color);
 
 // Global Variables
 unsigned long cycle_count;
@@ -126,8 +127,9 @@ Adafruit_BNO055 bno_a = Adafruit_BNO055(1, BNO055_ADDRESS_A);
 Adafruit_BNO055 bno_b = Adafruit_BNO055(2, BNO055_ADDRESS_B);
 
 // DATA BUFFERS and PTRS
-static struct data_sample databuff[BUFF_SIZE] = {0};
-static struct data_sample* buffptr = databuff;
+static data_sample databuff[BUFF_SIZE] = {0};
+static data_sample *buffptr = databuff;
+static data_sample *buffend = databuff + BUFF_SIZE;
 bool buff_overflow = false;
 
 // FOR CALCULATING MAX AND MIN of A data
@@ -214,8 +216,8 @@ void logString(String dataString){
 }
 
 // Returns a struct with both IMU pitch readings, and delta = A - B
-struct IMU_Sample sensorRead(Adafruit_BNO055 bno_a, Adafruit_BNO055 bno_b){
-  struct IMU_Sample sample;
+IMU_Sample sensorRead(Adafruit_BNO055 bno_a, Adafruit_BNO055 bno_b){
+  IMU_Sample sample;
 
   sensors_event_t event_a;
   sensors_event_t event_b;
@@ -234,20 +236,27 @@ struct IMU_Sample sensorRead(Adafruit_BNO055 bno_a, Adafruit_BNO055 bno_b){
 // Log a data sample (sensor pitches, delta, state) to the data buffer's current position. If full, trigger writeData().
 // Move buffer pointer forward by one.
 // determine if data should be written to SD; if it is, call writeData();
-void logSample(struct IMU_Sample sample){
-  buffptr->time = millis();
-  buffptr->angles.a = sample.a; 
-  buffptr->angles.b = sample.b;
-  buffptr->angles.delta = sample.delta;
-  buffptr->state = state;
-  buffptr->statA = (haptic_status & A);
-  buffptr->statB = ((haptic_status & B) >> 1);
+void logSample(IMU_Sample sample){
+  if(!buff_overflow){
+    buffptr->time = millis();
+    buffptr->angles.a = sample.a; 
+    buffptr->angles.b = sample.b;
+    buffptr->angles.delta = sample.delta;
+    buffptr->state = state;
+    buffptr->statA = (haptic_status & A);
+    buffptr->statB = ((haptic_status & B) >> 1);
 
-  // increment buffer position to next available
-  buffptr++;  
+    // increment buffer position to next available
+    buffptr++;  
+    // error check for end of buffer
+    if(buffptr == buffend){
+      buff_overflow = true;  
+    }
+  }
 
   // have we gone N samples with no activity?
   if(calculateActivity(sample.a)){
+    rgbLED(CYAN);
     writeData();
   }
 }
@@ -332,6 +341,7 @@ void writeData(){
     }  
   memset(databuff, 0, sizeof(databuff));
   buffptr = databuff;
+  buff_overflow = false;
   }
 }
 

@@ -100,7 +100,7 @@ void loop() {
       rgbLED(BLUE);
       
       // Sensors recording measurement. Waiting for user Zero. No feedback given; print values for debug?
-      struct IMU_Sample sample_idle = sensorRead(bno_a, bno_b); 
+      IMU_Sample sample_idle = sensorRead(bno_a, bno_b); 
 
       // Zero set point.
       if (buttonPressed){
@@ -148,7 +148,7 @@ void loop() {
       haptics(OFF);
 
       // Once curvature zeroed, reading values, comparing to treshold. Within range
-      struct IMU_Sample sample_green = sensorRead(bno_a, bno_b); 
+      IMU_Sample sample_green = sensorRead(bno_a, bno_b); 
       float dev_delta = sample_green.delta - zero_delta;
 
       // Deviation of sample exceeds first threshold. Move to next state.   
@@ -169,7 +169,7 @@ void loop() {
       rgbLED(YELLOW);
       buzzer(ON);
       // Take new sample.
-      struct IMU_Sample sample_yellow = sensorRead(bno_a, bno_b); 
+      IMU_Sample sample_yellow = sensorRead(bno_a, bno_b); 
       float dev_delta = sample_yellow.delta - zero_delta;
 
       if(abs(dev_delta) > (float) G_THRESHOLD){
