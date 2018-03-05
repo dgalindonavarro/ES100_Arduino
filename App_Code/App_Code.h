@@ -145,7 +145,7 @@ void initSDlogging(){
   }
   SerialUSB.println("card initialized.");     
 
-  String dataString = "Device_Startup, Time (mS), Sensor_A, Sensor_B, Delta, State, Hap_A, Hap_B";
+  String dataString = "Time (mS), Sensor_A, Sensor_B, Delta, State, Hap_A, Hap_B";
   // open the file. note that only one file can be open at a time,
   // so you have to close this one before opening another.
   File dataFile = SD.open(filename, FILE_WRITE);
@@ -205,7 +205,6 @@ struct IMU_Sample sensorRead(Adafruit_BNO055 bno_a, Adafruit_BNO055 bno_b){
 void logSample(struct IMU_Sample sample){
   String dataline = "";
   
-  dataline += "Sample, ";
   dataline += String(millis());
   dataline += ", ";
   dataline += String(sample.a);
