@@ -235,7 +235,6 @@ IMU_Sample sensorRead(Adafruit_BNO055 bno_a, Adafruit_BNO055 bno_b){
 
 // Log a data sample (sensor pitches, delta, state) to the data buffer's current position. If full, trigger writeData().
 // Move buffer pointer forward by one.
-// determine if data should be written to SD; if it is, call writeData();
 void logSample(IMU_Sample sample){
   if(!buff_overflow){
     buffptr->time = millis();
@@ -254,8 +253,8 @@ void logSample(IMU_Sample sample){
     }
   }
 
-  // have we gone N samples with no activity?
-  if(calculateActivity(sample.a)){
+  // have we gone N samples with no activity? OR filled buffer
+  if(calculateActivity(sample.a) || buff_overflow){
     rgbLED(CYAN);
     writeData();
   }
@@ -306,6 +305,7 @@ bool calculateActivity(float nextA){
 }
 
 // Write all data in buffer to SD (if logging) and clear buffer, move pointer back to beginning.
+// determine if data should be written to SD
 void writeData(){
   if(isLogging){
     // move ptr to beginning of buffer
