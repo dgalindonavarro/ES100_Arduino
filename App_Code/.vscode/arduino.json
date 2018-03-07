@@ -1,5 +1,6 @@
 {
     "board": "arduino:samd:mzero_bl",
     "sketch": "App_Code.ino",
-    "port": "COM12"
+    "port": "COM12",
+    "output": "../App_Code_build"
 }

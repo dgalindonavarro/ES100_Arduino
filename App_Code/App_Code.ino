@@ -11,7 +11,6 @@ void setup() {
   // put your setup code here, to run once:
   state = S_STARTUP;
   
-  rtc.begin();
   Wire.begin();
   Serial.begin(9600);
   while (!Serial) {
@@ -79,9 +78,11 @@ void loop() {
       bno_b.setSensorOffsets(calibrationData_b);
       
       // ensure A and B fully Calibrated
+      /*
       while(!bno_a.isFullyCalibrated() || !bno_b.isFullyCalibrated()){
         delay(BLINK_DELAY_MS); // short delay      
       } 
+      */
 
       if (errorcode){state = S_ERROR;} else {
         bno_a.setExtCrystalUse(true);
